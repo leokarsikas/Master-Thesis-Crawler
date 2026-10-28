@@ -1,0 +1,12 @@
+{"total": {"value": 3}, "hits": [
+ {"id": "1", "headline": "Examensarbete: AI för klinisk beslutsstöd", "employer": {"name": "Region Stockholm"},
+  "workplace_address": {"municipality": "Stockholm"}, "application_deadline": "2026-11-20T23:59:59",
+  "description": {"text": "Examensarbete 30 hp där du utvecklar maskininlärning och språkmodeller för kliniskt beslutsstöd i vården."},
+  "webpage_url": "https://arbetsformedlingen.se/platsbanken/annonser/1"},
+ {"id": "2", "headline": "Lagerarbetare", "employer": {"name": "Lager AB"},
+  "workplace_address": {"municipality": "Göteborg"}, "application_deadline": "2026-11-01T23:59:59",
+  "description": {"text": "Vi söker lagerarbetare."}, "webpage_url": "https://arbetsformedlingen.se/platsbanken/annonser/2"},
+ {"id": "3", "headline": "Master thesis: LLM-based patient triage with in-house models", "employer": {"name": "MedAI"},
+  "workplace_address": {"municipality": "Stockholm"}, "application_deadline": "",
+  "description": {"text": "Short ad. Master thesis."}, "webpage_url": "https://arbetsformedlingen.se/platsbanken/annonser/3"}
+]}

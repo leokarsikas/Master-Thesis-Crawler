@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "thesis-crawler"
+version = "0.1.0"
+description = "Crawl company career pages, the KTH Degree Project Portal and job boards for master thesis listings and rank them against a profile."
+requires-python = ">=3.10"
+dependencies = [
+    "httpx>=0.27",
+    "beautifulsoup4>=4.12",
+    "pyyaml>=6.0",
+    "jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+embeddings = ["sentence-transformers>=3.0"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+thesis-crawler = "thesis_crawler.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+thesis_crawler = ["templates/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
