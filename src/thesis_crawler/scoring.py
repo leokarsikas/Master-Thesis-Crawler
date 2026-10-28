@@ -31,6 +31,27 @@ def _compile(term: str) -> re.Pattern:
     return re.compile(rf"(?<!\w){body}{r'\w*' if prefix else r'(?!\w)'}", re.IGNORECASE)
 
 
+@dataclass
+class Bonus:
+    """Flat points added on top of the 0-100 score when a listing qualifies."""
+
+    label: str
+    points: float
+    terms: list[re.Pattern]  # match title or description
+    employers: list[re.Pattern]  # company must match one of these
+    not_employers: list[re.Pattern]  # company must match none of these
+
+    def applies(self, listing: Listing) -> bool:
+        company = listing.company or ""
+        if self.employers and not any(p.search(company) for p in self.employers):
+            return False
+        if any(p.search(company) for p in self.not_employers):
+            return False
+        if self.terms:
+            return any(p.search(listing.title) or p.search(listing.description) for p in self.terms)
+        return True
+
+
 class Profile:
     def __init__(self, data: dict):
         self.text: str = data.get("profile_text", "").strip()
@@ -39,6 +60,16 @@ class Profile:
             weight = float(group.get("weight", 1))
             for term in group.get("terms", []):
                 self.terms.append(Term(term, _compile(term), weight))
+        self.bonuses: list[Bonus] = [
+            Bonus(
+                label=cfg.get("label", name.replace("_", " ")),
+                points=float(cfg.get("points", 0)),
+                terms=[_compile(t) for t in cfg.get("terms", [])],
+                employers=[_compile(t) for t in cfg.get("employers", [])],
+                not_employers=[_compile(t) for t in cfg.get("not_employers", [])],
+            )
+            for name, cfg in (data.get("bonuses") or {}).items()
+        ]
         scoring = data.get("scoring") or {}
         self.keyword_saturation = float(scoring.get("keyword_saturation", 25))
         self.title_multiplier = float(scoring.get("title_multiplier", 2))
@@ -122,6 +153,9 @@ def score_listings(
             listing.embedding_score = max(0.0, min(100.0, 100 * (sims[i] - lo) / (hi - lo)))
             w = profile.keyword_weight
             listing.score = w * listing.keyword_score + (1 - w) * listing.embedding_score
+        earned = [b for b in profile.bonuses if b.applies(listing)]
+        listing.bonuses = [b.label for b in earned]
+        listing.score += sum(b.points for b in earned)
         listing.score = round(listing.score, 1)
 
     return sorted(listings, key=lambda l: l.score, reverse=True)

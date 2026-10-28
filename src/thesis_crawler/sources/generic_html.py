@@ -13,7 +13,7 @@ import re
 from urllib.parse import urljoin, urlsplit
 
 from ..fetch import FetchError, Fetcher
-from ..filter import is_thesis, looks_like_thesis_link
+from ..filter import is_thesis_listing, looks_like_thesis_link
 from ..models import Listing, normalize_url
 from .base import Source, find_deadline, main_text, page_title, register, soup_of
 
@@ -107,7 +107,7 @@ class GenericHtmlSource(Source):
     def _to_listing(self, soup, url: str) -> Listing | None:
         title = page_title(soup)
         text = main_text(soup)
-        if not is_thesis(f"{title}\n{text}"):
+        if not is_thesis_listing(title, text):
             return None
         return Listing(
             title=title,

@@ -69,6 +69,10 @@ One-time setup:
 2. **Actions → Crawl and publish report → Run workflow** to start the first run
    instead of waiting for the schedule. Untick "embeddings" for a faster keyword-only run.
 
+To test a few sources without touching the public report, run the workflow with
+**only** set to comma-separated source names (e.g. `RaySearch Laboratories, AFRY`)
+and **deploy** unticked.
+
 To change the time, edit the `cron` line in the workflow (it's in UTC).
 The listing history (`data/listings.db`) is kept in the Actions cache between
 runs, so the NEW badges work. If the cache is evicted, the next run marks every
@@ -90,16 +94,26 @@ It only contains the ranked listings, not your CV.
   (comparing algorithms) and fields that don't fit (mechanical, finance, ...).
   Terms can be phrases, `prefix*` or `/regex/`. The report lists the matched
   terms for each listing, so you can see why it scored the way it did.
+- **`bonuses`** in `config/profile.yaml` add flat points on top of the 0–100 score
+  and appear as chips in the report:
+
+  | bonus | points | when |
+  | --- | --- | --- |
+  | company | +8 | the employer isn't a university, research institute or public body |
+  | preferred company | +7 | the employer is on my list (course PDF companies, RaySearch, AstraZeneca, Saluto) |
+  | job after thesis | +12 | the ad mentions possible employment after the thesis (EN/SV) |
+  | paid | +8 | the ad mentions compensation, a stipend, salary or an amount in kr/SEK |
+
 - **`config/sources.yaml`** lists where to look. To add a company, add
   `- {name: Foo, url: https://foo.se/careers}`. The `generic_html` crawler starts
   there, follows links that look thesis related (thesis, exjobb, students, degree
   project), and crawls hub pages such as "Thesis opportunities" one level deeper.
-  If the site runs on Teamtailor, use `type: teamtailor` instead.
+  If the site runs on Teamtailor, use `type: teamtailor` instead; for SmartRecruiters
+  (e.g. AFRY), use `type: smartrecruiters` with `company_id`.
 
-> The company URLs in `sources.yaml` are best guesses: they were written without
-> a live connection. After the first run, look at **Sources that failed** at the
-> bottom of the report, then point those entries at the company's real
-> careers/students page or set `enabled: false`.
+> Check **Sources that failed** at the bottom of the report now and then: companies
+> move their careers pages. Point a failing entry at the new page or set
+> `enabled: false`.
 
 ## How it works
 

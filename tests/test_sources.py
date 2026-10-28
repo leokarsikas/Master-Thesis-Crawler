@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from thesis_crawler.filter import is_thesis
+from thesis_crawler.filter import is_thesis, is_thesis_listing
 from thesis_crawler.sources import build_source, load_sources
 
 from conftest import FIXTURES, ROOT
@@ -84,3 +84,28 @@ def test_shipped_sources_config_is_valid():
     assert len(sources) > 15
     assert all(s.url.startswith("https://") for s in sources)
     assert {s.name for s in load_sources(ROOT / "config" / "sources.yaml", only=["doctrin"])} == {"Doctrin"}
+
+
+@pytest.mark.parametrize(
+    "title, description, expected",
+    [
+        ("Master Thesis: ML for triage", "", True),
+        ("Doktorand i medicinsk vetenskap", "Du kommer att handleda examensarbeten.", False),
+        ("Universitetsadjunkt i omvårdnad", "Undervisning och examensarbete 15 hp.", False),
+        ("Forskningsassistent i medical management", "examensarbete", False),
+        ("Personalized treatment from EHR data", "Master thesis, 30 hp, at our lab.", True),
+        ("Personalized treatment from EHR data", "x" * 700 + " master thesis", False),
+    ],
+)
+def test_is_thesis_listing(title, description, expected):
+    assert is_thesis_listing(title, description) is expected
+
+
+def test_smartrecruiters_keeps_thesis_postings(fetcher):
+    listings = source(
+        {"name": "AFRY", "type": "smartrecruiters", "company_id": "AFRY", "url": "smartrecruiters.json"}
+    ).fetch(fetcher)
+    [l] = listings
+    assert l.title == "Master's Thesis Project at AFRY, Medical Device Software"
+    assert l.url == "https://jobs.smartrecruiters.com/AFRY/743999937353932-master-s-thesis-project-at-afry-medical-device-software"
+    assert (l.company, l.location) == ("AFRY", "Stockholm")

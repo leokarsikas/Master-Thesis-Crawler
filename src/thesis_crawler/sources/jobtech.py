@@ -47,7 +47,9 @@ class JobTechSource(Source):
                 hits = data.get("hits", [])
                 for hit in hits:
                     listing = self._to_listing(hit)
-                    if listing and is_thesis(listing.text):
+                    # Job-board thesis ads always name it in the headline; body mentions are
+                    # usually PhD/lecturer jobs that supervise theses.
+                    if listing and is_thesis(listing.title):
                         listings[listing.id] = listing
                 total = (data.get("total") or {}).get("value", 0)
                 offset += self.limit

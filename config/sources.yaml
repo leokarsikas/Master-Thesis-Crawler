@@ -1,22 +1,26 @@
 # Where to look for thesis listings.
 #
 # type:
-#   generic_html  any career page: follows thesis-looking links (works for most sites)
-#   teamtailor    Teamtailor career sites (<company>.teamtailor.com/jobs or a custom domain)
-#   kth_portal    KTH Degree Project Portal table (can start on an info page that links to it)
-#   jobtech       Platsbanken via the JobTech JobSearch API
+#   generic_html     any career page: follows thesis-looking links (works for most sites)
+#   teamtailor       Teamtailor career sites (<company>.teamtailor.com/jobs or a custom domain)
+#   smartrecruiters  companies on SmartRecruiters, via its public API (needs company_id)
+#   kth_portal       KTH Degree Project Portal table (can start on an info page that links to it)
+#   jobtech          Platsbanken via the JobTech JobSearch API
 #
-# Company URLs are best guesses and have not been checked from a live connection.
-# Sources that fail are listed at the bottom of out/report.html; fix the URL
+# Sources that fail are listed at the bottom of the report; fix the URL
 # (point it at the company's careers / students / thesis page) or set enabled: false.
 # Optional per-source keys: company, link_pattern, max_depth, max_pages, enabled.
+# Companies whose own sites can't be crawled still show up through Platsbanken,
+# which has a query per company below.
 
 sources:
   # --- Job boards ------------------------------------------------------------
   - name: Platsbanken
     type: jobtech
     url: https://jobsearch.api.jobtechdev.se/search
-    queries: [examensarbete, exjobb, master thesis, thesis worker, examensarbete hälsa]
+    queries: [examensarbete, exjobb, master thesis, thesis worker, examensarbete hälsa,
+              examensarbete medicin, thesis AstraZeneca, thesis Elekta, thesis RaySearch,
+              thesis AFRY, thesis Doctrin, thesis Knightec, thesis Atea, examensarbete Karolinska]
 
   - name: dittexjobb.se
     type: generic_html
@@ -31,47 +35,63 @@ sources:
     url: https://www.kth.se/en/samverkan/exjobb/studenter
 
   - name: KTH MoveAbility Lab
-    type: generic_html
     company: KTH MoveAbility Lab
-    url: https://www.kth.se/moveability
+    url: https://www.kth.se/moveabilitylab
 
-  # --- Companies from the Data-driven Health kick-off slides ------------------
+  # --- My own picks ----------------------------------------------------------
+  - name: RaySearch Laboratories
+    url: https://raysearchlabs.workbuster.com/
+  - name: AstraZeneca
+    url: https://www.astrazeneca.com/content/az-se/karriar/early-talent-careers.html
+  - name: AstraZeneca careers
+    company: AstraZeneca
+    url: https://careers.astrazeneca.com/students
+  - name: Saluto
+    url: https://www.saluto.se/
+
+  # --- Companies from the Data-driven Health thesis guidelines ---------------
   - name: Acorai
-    url: https://www.acorai.com/careers
-  - name: AFRY (ÅF Digital Solutions)
+    url: https://www.acorai.com/
+  - name: AFRY
+    type: smartrecruiters
+    company_id: AFRY
+  - name: AFRY thesis projects
     company: AFRY
-    url: https://afry.com/en/join-us/students
+    url: https://afry.com/en/thesis-projects
   - name: AI Sweden
-    url: https://www.ai.se/en/about-us/join-us
+    type: teamtailor
+    url: https://careers.ai.se/jobs
+  - name: AI Sweden thesis program
+    company: AI Sweden
+    url: https://www.ai.se/en/adoption/talent-programs/master-thesis-program
   - name: Atea Sverige
-    url: https://www.atea.se/om-oss/karriar/student/
+    url: https://www.atea.se/
   - name: Coala Solutions
     url: https://www.coalasolutions.se/
+    enabled: false  # domain doesn't resolve; covered by Platsbanken
   - name: Devyser Diagnostics
-    url: https://devyser.com/careers/
+    url: https://devyser.weselect.com/
   - name: Digital Diabetes Analytics Sweden
     url: https://www.digitaldiabetesanalytics.com/
+    enabled: false  # domain doesn't resolve; covered by Platsbanken
   - name: Doctrin
-    url: https://www.doctrin.se/careers
+    url: https://www.doctrin.se/
   - name: Elekta
-    url: https://www.elekta.com/careers/students/
+    url: https://www.elekta.com/careers/
   - name: EverySport Group
     url: https://www.everysportgroup.com/
   - name: Karolinska Institutet
-    url: https://ki.se/en/about/vacancies
+    url: https://ki.varbi.com/en/
   - name: Knightec
     url: https://knightec.se/en/career/thesis-work/
   - name: LUMA Vision
-    url: https://www.lumavision.com/careers
+    url: https://luma-vision.hirehive.com/
   - name: Modulai
-    url: https://modulai.io/careers
+    type: teamtailor
+    url: https://modulai.teamtailor.com/jobs
   - name: OneTwo Analytics
     url: https://www.onetwoanalytics.com/
-  - name: RaySearch Laboratories
-    url: https://www.raysearchlabs.com/careers/
   - name: SciLifeLab
     url: https://www.scilifelab.se/careers/
   - name: SensoDetect
     url: https://www.sensodetect.com/
-  - name: Saluto
-    url: https://www.saluto.se/

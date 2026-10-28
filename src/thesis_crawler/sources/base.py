@@ -40,7 +40,7 @@ def build_source(cfg: dict, base_dir: Path | None = None) -> Source:
     cfg.pop("enabled", None)
     if kind not in _REGISTRY:
         raise ValueError(f"unknown source type {kind!r} for {cfg.get('name')!r}")
-    if base_dir is not None and "://" not in cfg["url"]:
+    if base_dir is not None and cfg.get("url") and "://" not in cfg["url"]:
         # Plain paths in a sources file are local fixtures relative to that file.
         cfg["url"] = (base_dir / cfg["url"]).resolve().as_uri()
     return _REGISTRY[kind](**cfg)

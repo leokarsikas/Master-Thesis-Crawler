@@ -12,7 +12,7 @@ from .models import Listing
 
 CSV_FIELDS = [
     "score", "new", "title", "company", "location", "deadline", "source",
-    "keyword_score", "embedding_score", "matched_terms", "first_seen", "url",
+    "keyword_score", "embedding_score", "bonuses", "matched_terms", "first_seen", "url",
 ]
 
 
@@ -31,6 +31,7 @@ def write_csv(listings: list[Listing], path: Path) -> None:
                 "source": l.source,
                 "keyword_score": round(l.keyword_score, 1),
                 "embedding_score": "" if l.embedding_score is None else round(l.embedding_score, 1),
+                "bonuses": "; ".join(l.bonuses),
                 "matched_terms": "; ".join(l.matched_terms),
                 "first_seen": l.first_seen[:10],
                 "url": l.url,
