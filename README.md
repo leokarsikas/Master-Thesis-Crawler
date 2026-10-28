@@ -56,6 +56,32 @@ thesis-crawler run --sources tests/fixtures/sources.yaml --no-embeddings
 Run it again every few days. `data/listings.db` remembers what you've seen, so
 the **NEW** badge and the "Only new" filter show what appeared since the last run.
 
+## Run it automatically (GitHub Actions + Pages)
+
+`.github/workflows/crawl.yml` runs the crawler every day at 05:17 UTC and
+publishes the report to GitHub Pages at
+`https://<your-username>.github.io/Master-Thesis-Crawler/`. The CSV is at
+`listings.csv` on the same site.
+
+One-time setup:
+
+1. **Settings → Pages → Build and deployment → Source:** choose "GitHub Actions".
+2. **Actions → Crawl and publish report → Run workflow** to start the first run
+   instead of waiting for the schedule. Untick "embeddings" for a faster keyword-only run.
+
+To change the time, edit the `cron` line in the workflow (it's in UTC).
+The listing history (`data/listings.db`) is kept in the Actions cache between
+runs, so the NEW badges work. If the cache is evicted, the next run marks every
+listing as new once.
+
+**Cost.** Public repos get unlimited Actions minutes on standard runners. A
+private repo uses your monthly allowance: GitHub Pro (free with the Student
+Developer Pack) includes 3,000 minutes. A run takes about 3–10 minutes
+(installing PyTorch plus crawling about 20 sites with a 1 s delay per host),
+which comes to roughly 100–300 minutes a month.
+The site published by Pages is **public** even from a private repo on Pro.
+It only contains the ranked listings, not your CV.
+
 ## Tuning
 
 - **`config/profile.yaml`** is what "a good fit" means. `profile_text` is used
