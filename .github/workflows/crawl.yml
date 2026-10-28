@@ -1,0 +1,96 @@
+name: Crawl and publish report
+
+# Runs the crawler every morning and publishes out/report.html to GitHub Pages.
+# One-time setup: Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+on:
+  schedule:
+    - cron: "17 5 * * *"  # 05:17 UTC daily
+  workflow_dispatch:
+    inputs:
+      embeddings:
+        description: "Use embedding similarity (slower, downloads a model)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Scheduled runs have no inputs; default to embeddings on.
+      EMBEDDINGS: ${{ github.event_name == 'schedule' || inputs.embeddings }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install
+        run: |
+          if [ "$EMBEDDINGS" = "true" ]; then
+            # CPU-only PyTorch keeps the install small and fast.
+            pip install torch --index-url https://download.pytorch.org/whl/cpu
+            pip install -e ".[embeddings]"
+          else
+            pip install -e .
+          fi
+
+      - name: Cache embedding model
+        if: env.EMBEDDINGS == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ hashFiles('config/profile.yaml') }}
+          restore-keys: hf-
+
+      # listings.db remembers what earlier runs saw, so new listings get a NEW badge.
+      - name: Restore listing history
+        uses: actions/cache/restore@v4
+        with:
+          path: data
+          key: listings-db-${{ github.run_id }}
+          restore-keys: listings-db-
+
+      - name: Crawl
+        run: |
+          thesis-crawler run --no-cache --top 20 \
+            $([ "$EMBEDDINGS" = "true" ] || echo --no-embeddings)
+
+      - name: Save listing history
+        if: always() && hashFiles('data/listings.db') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: data
+          key: listings-db-${{ github.run_id }}
+
+      - name: Prepare site
+        run: |
+          mkdir -p site
+          cp out/report.html site/index.html
+          cp out/listings.csv site/listings.csv
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: crawl
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
