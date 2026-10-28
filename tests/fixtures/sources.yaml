@@ -1,0 +1,8 @@
+# Offline sources used by the tests and for trying the crawler without network:
+#   thesis-crawler run --sources tests/fixtures/sources.yaml --no-embeddings
+sources:
+  - {name: MedAI, type: generic_html, url: company/careers.html}
+  - {name: Teamhealth, type: teamtailor, url: teamtailor/jobs.html}
+  - {name: KTH Degree Project Portal, type: kth_portal, company: KTH, url: kth/info.html}
+  - {name: Platsbanken, type: jobtech, url: jobtech.json}
+  - {name: Broken site, url: does-not-exist.html}

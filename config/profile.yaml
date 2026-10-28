@@ -1,0 +1,85 @@
+# What a good thesis looks like for me. Edit freely: the crawler re-scores
+# everything on each run.
+#
+# profile_text is compared to each listing with sentence embeddings.
+# keywords give a transparent score; the matched terms are shown in the report.
+#   "phrase"   whole-word / whole-phrase match (spaces also match hyphens)
+#   "prefix*"  prefix match (diagnos* -> diagnosis, diagnostik, ...)
+#   "/regex/"  raw case-insensitive regular expression
+
+profile_text: |
+  Master thesis in data-driven health. Developing a new machine learning method or
+  integrating sensors, models and systems for healthcare, with engineering and
+  scientific novelty rather than comparing standard models on a dataset.
+  Examples: learning personalized treatment strategies from longitudinal clinical data,
+  explainable and transparent AI for clinical decision support, combining in-house ML
+  models with large language models for patient triage, generative AI in digital health
+  platforms, secure and privacy-preserving health software, wearable and sensor data.
+  Background: MSc Data-Driven Health and BSc Computer Engineering at KTH; AI developer
+  building ML + LLM triage workflows; bachelor thesis on generative AI (AWS Bedrock) in a
+  digital health platform; Python, Java, SQL, C, React, TypeScript, AWS, Azure.
+
+scoring:
+  # Weight of the keyword score in the total; the rest is embedding similarity.
+  keyword_weight: 0.5
+  # Raw keyword points at which the keyword score reaches ~63/100.
+  keyword_saturation: 25
+  # A term in the title counts this many times more than in the body.
+  title_multiplier: 2
+  # Cosine similarities mapped linearly onto 0..100.
+  similarity_range: [0.15, 0.6]
+  # Multilingual so Swedish ads score fairly.
+  embedding_model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+
+keywords:
+  health_domain:
+    weight: 3
+    terms: [health*, hälsa, hälso*, healthcare, sjukvård*, vård, clinical, klinisk*, medical,
+            medicin*, patient*, triage, diagnos*, radiotherap*, strålbehandling, oncolog*, cancer,
+            EHR, electronic health record*, patientjournal*, hospital*, sjukhus*, biomedic*, digital health,
+            medtech, medical device*, life science*, precision medicine, genomic*, imaging,
+            radiolog*, diabetes, cardio*, rehabilitat*, wearable*, sensor*, physiolog*,
+            ECG, EEG, gait]
+
+  ml_methods:
+    weight: 3
+    terms: [machine learning, maskininlärning, deep learning, neural network*, AI,
+            artificial intelligence, artificiell intelligens, LLM*, large language model*,
+            language model*, NLP, natural language processing, generative AI, generativ AI,
+            foundation model*, transformer*, explainab*, XAI, interpretab*, transparen*,
+            federated learning, causal*, kausal*, reinforcement learning, time series, tidsserie*,
+            longitudinal, "/personali[sz]ed/", survival analysis, uncertainty, bayesian, multimodal,
+            representation learning, self-supervised, computer vision, decision support,
+            beslutsstöd, retrieval, RAG, agentic, AI agent*]
+
+  novelty_signals:
+    # From the KTH Data-driven Health guidelines: engineering or scientific novelty.
+    weight: 4
+    terms: ["/develop\\w*\\s+(?:a\\s+)?(?:new|novel)\\s+(?:\\w+\\s+){0,2}(?:method|model|approach|algorithm|framework)/",
+            "/(?:new|novel)\\s+(?:method|approach|algorithm|framework)/",
+            "/integrat\\w*\\s+(?:of\\s+)?(?:\\w+\\s+){0,3}(?:sensors?|models?|systems?)/",
+            "/personali[sz]ed treatments?/", treatment strateg*, new knowledge, unknown relationship*,
+            research question, state of the art, novel]
+
+  engineering_stack:
+    weight: 1.5
+    terms: [Python, PyTorch, TensorFlow, scikit-learn, SQL, Java, TypeScript, React, AWS,
+            Azure, cloud, MLOps, data pipeline*, software engineering, full-stack, API*,
+            security, privacy, integritet*, GDPR, authentication, mobile app*]
+
+  thesis_fit:
+    weight: 2
+    terms: [master thesis, master's thesis, masters thesis, examensarbete, exjobb, 30 hp,
+            30 credits, 30 ECTS, Stockholm, KTH]
+
+  penalties:
+    # Things the guidelines warn against, or that don't fit my profile.
+    weight: -5
+    terms: ["/compar\\w*\\s+(?:\\w+\\s+){0,4}(?:algorithms|models|classifiers|methods)/",
+            "/(?:jämför\\w*)\\s+(?:\\w+\\s+){0,4}(?:algoritmer|modeller)/",
+            bachelor*, kandidatarbete, högskoleingenjör*,
+            mechanical engineering, maskinteknik, civil engineering, construction, byggteknik,
+            mining, gruv*, combustion, hydraulic*, welding, svets*, vehicle dynamics,
+            finance, private debt, accounting, redovisning, marketing, sales, försäljning,
+            supply chain, logistics, logistik, seasonal, summer job, sommarjobb, part-time job,
+            deltid, internship only]
