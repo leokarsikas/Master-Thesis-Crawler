@@ -7,6 +7,7 @@ offline runs work.
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import time
 import urllib.robotparser
@@ -98,6 +99,30 @@ class Fetcher:
                 if attempt < self.retries:
                     time.sleep(2 ** attempt * 2)
         raise FetchError(f"{full_url}: {last_error}")
+
+    def post_json(self, url: str, payload: dict) -> str:
+        """POST a JSON body (for job-board APIs such as Workday's); cached like GETs."""
+        body = json.dumps(payload, sort_keys=True)
+        if urlsplit(url).scheme == "file":
+            return self.get(url)
+        cache_key = f"POST {url} {body}"
+        cached = self._read_cache(cache_key)
+        if cached is not None:
+            return cached
+        if not self._allowed(url):
+            raise FetchError(f"{url}: disallowed by robots.txt")
+        self._wait_for_host(urlsplit(url).netloc)
+        try:
+            resp = self._client.post(
+                url, content=body, headers={"Content-Type": "application/json", "Accept": "application/json"}
+            )
+            resp.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            raise FetchError(f"POST {url}: HTTP {e.response.status_code}") from e
+        except httpx.HTTPError as e:
+            raise FetchError(f"POST {url}: {e}") from e
+        self._write_cache(cache_key, resp.text)
+        return resp.text
 
     def _wait_for_host(self, host: str) -> None:
         elapsed = time.monotonic() - self._last_hit.get(host, 0.0)

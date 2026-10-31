@@ -8,7 +8,7 @@ import re
 from urllib.parse import urljoin
 
 from ..fetch import FetchError, Fetcher
-from ..filter import is_thesis
+from ..filter import is_thesis_listing
 from ..models import Listing
 from .base import Source, find_deadline, main_text, register, soup_of
 
@@ -81,7 +81,7 @@ class KthPortalSource(Source):
                 description=description,
             )
             # Typed rows are already known degree projects; untyped ones need the wording.
-            if row.get("type") or is_thesis(listing.text):
+            if row.get("type") or is_thesis_listing(listing.title, listing.description):
                 listings.append(listing)
         return listings
 

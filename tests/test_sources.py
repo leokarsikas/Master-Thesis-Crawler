@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from thesis_crawler.filter import is_thesis
+from thesis_crawler.filter import is_thesis, is_thesis_listing
 from thesis_crawler.sources import build_source, load_sources
 
 from conftest import FIXTURES, ROOT
@@ -84,3 +84,80 @@ def test_shipped_sources_config_is_valid():
     assert len(sources) > 15
     assert all(s.url.startswith("https://") for s in sources)
     assert {s.name for s in load_sources(ROOT / "config" / "sources.yaml", only=["doctrin"])} == {"Doctrin"}
+
+
+@pytest.mark.parametrize(
+    "title, description, expected",
+    [
+        ("Master Thesis: ML for triage", "", True),
+        ("Doktorand i medicinsk vetenskap", "Du kommer att handleda examensarbeten.", False),
+        ("Universitetsadjunkt i omvårdnad", "Undervisning och examensarbete 15 hp.", False),
+        ("Forskningsassistent i medical management", "examensarbete", False),
+        ("Personalized treatment from EHR data", "Master thesis, 30 hp, at our lab.", True),
+        ("Personalized treatment from EHR data", "x" * 700 + " master thesis", False),
+    ],
+)
+def test_is_thesis_listing(title, description, expected):
+    assert is_thesis_listing(title, description) is expected
+
+
+def test_workday_keeps_thesis_postings(fetcher):
+    listings = source({"name": "Elekta", "type": "workday", "url": "workday.json"}).fetch(fetcher)
+    [l] = listings
+    assert l.title == "Master Thesis AI Based Prediction for Anatomical Motion Modelling on Unity"
+    assert l.url.endswith("/job/Stockholm/Master-Thesis-AI-Based-Prediction-for-Anatomical-Motion-Modelling-on-Unity_R2026-1569")
+    assert (l.company, l.location) == ("Elekta", "Stockholm")
+
+
+def test_workday_api_url_from_career_site():
+    src = source({"name": "Elekta", "type": "workday",
+                  "url": "https://elekta.wd3.myworkdayjobs.com/en-US/Elekta_Careers"})
+    assert src.api == "https://elekta.wd3.myworkdayjobs.com/wday/cxs/elekta/Elekta_Careers"
+    assert (src.lang, src.site) == ("en-US", "Elekta_Careers")
+
+
+def test_afry_keeps_thesis_category(fetcher):
+    listings = source({"name": "AFRY", "type": "afry", "url": "afry.json"}).fetch(fetcher)
+    [l] = listings
+    assert l.title == "Examensarbete – AI inom Integrated Logistics Support"
+    assert l.url == "https://afry.com/en/careers/available-jobs/REF123-examensarbete-ai-inom-ils"
+    assert (l.company, l.location) == ("AFRY", "Solna")
+    assert "framtida anställning" in l.description
+
+
+def test_post_json_sends_body_and_caches(tmp_path):
+    import json
+
+    import httpx
+
+    from thesis_crawler.fetch import Fetcher
+
+    calls = []
+
+    def handler(request):
+        calls.append(json.loads(request.content))
+        assert request.headers["content-type"] == "application/json"
+        return httpx.Response(200, text='{"total": 0, "jobPostings": []}')
+
+    with Fetcher(cache_dir=tmp_path, delay=0, respect_robots=False) as f:
+        f._client = httpx.Client(transport=httpx.MockTransport(handler))
+        body = {"searchText": "thesis", "offset": 0}
+        assert json.loads(f.post_json("https://x.myworkdayjobs.com/wday/cxs/x/S/jobs", body))["total"] == 0
+        f.post_json("https://x.myworkdayjobs.com/wday/cxs/x/S/jobs", body)  # served from cache
+        f.post_json("https://x.myworkdayjobs.com/wday/cxs/x/S/jobs", {**body, "offset": 20})
+    assert calls == [body, {**body, "offset": 20}]
+
+
+@pytest.mark.parametrize(
+    "title, company, expected",
+    [
+        ("MSc Thesis: Vision Foundation Models | RaySearch Laboratories", "RaySearch Laboratories",
+         "MSc Thesis: Vision Foundation Models"),
+        ("Master Thesis - Data Analysis - Volvo Group", "Volvo", "Master Thesis - Data Analysis"),
+        ("Master Thesis - Data Analysis", "Elekta", "Master Thesis - Data Analysis"),
+    ],
+)
+def test_strip_site_suffix(title, company, expected):
+    from thesis_crawler.sources.generic_html import strip_site_suffix
+
+    assert strip_site_suffix(title, company) == expected

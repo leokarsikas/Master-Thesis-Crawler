@@ -83,3 +83,43 @@ keywords:
             finance, private debt, accounting, redovisning, marketing, sales, försäljning,
             supply chain, logistics, logistik, seasonal, summer job, sommarjobb, part-time job,
             deltid, internship only]
+
+# Flat points added on top of the 0-100 score; shown as chips in the report.
+#   employers / not_employers match the listing's company name
+#   terms match the title or description
+bonuses:
+  company:
+    label: company
+    points: 8
+    # Any employer that isn't a university, research institute or public body.
+    not_employers: [univers*, högskola*, högskolan*, '/\bKTH\b/', karolinska*, chalmers*,
+                    '/\bregion\b/', kommun*, myndighet*, "/verket\\b/", "/styrelsen\\b/", scilifelab*,
+                    institut*, '/\bRISE\b/', statistiska centralbyrån, försäkringskassan]
+
+  preferred_company:
+    label: preferred company
+    points: 7
+    # Companies from the Data-driven Health thesis guidelines, plus my own picks.
+    employers: [raysearch*, astrazeneca*, elekta*, doctrin*, saluto*, devyser*, modulai*,
+                "AI Sweden", afry*, '/\bÅF\b/', atea*, coala*, digital diabetes*, everysport*,
+                knightec*, luma vision*, acorai*, onetwo*, "one two analytics", sensodetect*,
+                karolinska*, scilifelab*, moveability*]
+
+  job_after_thesis:
+    label: job after thesis
+    points: 12
+    terms:
+      - "/(?:possibilit\\w*|opportunit\\w*|chance|potential)\\s+(?:of|for|to)\\s+(?:a\\s+)?(?:future\\s+|further\\s+|continued\\s+|permanent\\s+|full[\\s-]time\\s+)?(?:employment|position|job|role|hire)/"
+      - "/(?:employment|position|job|role|job\\s+offer)\\s+(?:with\\s+us\\s+)?after\\s+(?:the\\s+|your\\s+|a\\s+successful\\s+)?(?:thesis|graduation|project|studies)/"
+      - "/(?:continue|stay)\\s+(?:working\\s+)?(?:with|at)\\s+(?:us|the\\s+company)/"
+      - "/(?:möjlighet|chans)\\w*\\s+(?:till|för|att\\s+få)\\s+(?:en\\s+)?(?:fortsatt\\s+|framtida\\s+|fast\\s+|vidare\\s+)?(?:anställning|tjänst|jobb)/"
+      - "/anställning\\s+efter\\s+(?:avslutat\\s+)?(?:examensarbete\\w*|exjobb\\w*|studier\\w*)/"
+      - "/(?:fortsatt|framtida)\\s+anställning/"
+      - "/recruit\\w*\\s+(?:base|pipeline)|talent\\s+pipeline/"
+
+  compensation:
+    label: paid
+    points: 8
+    terms: [compensat*, remunerat*, stipend*, paid thesis, "/\\bpaid\\b/", salary, "/\\bbonus\\b/",
+            "/thesis\\s+(?:fee|grant|allowance)/", ersättning*, stipendi*, arvode*, "/\\blön\\b/",
+            "/\\d[\\d\\s.,]*\\s?(?:kr|sek)\\b/"]

@@ -5,8 +5,10 @@
 #   teamtailor    Teamtailor career sites (<company>.teamtailor.com/jobs or a custom domain)
 #   kth_portal    KTH Degree Project Portal table (can start on an info page that links to it)
 #   jobtech       Platsbanken via the JobTech JobSearch API
+#   workday       Workday career sites (<tenant>.wdN.myworkdayjobs.com/<lang>/<site>), via its JSON
+#   afry          AFRY's own job list JSON, filtered on its thesis category
 #
-# Company URLs were checked in a browser on 2026-10-31 (see thesis-research-report.md).
+# Company URLs were checked in a browser on 2026-10-31 (see docs/research/thesis-research-report.md).
 # Sources that fail are listed at the bottom of out/report.html; fix the URL
 # (point it at the company's careers / students / thesis page) or set enabled: false.
 # Optional per-source keys: company, link_pattern, max_depth, max_pages, enabled.
@@ -16,7 +18,9 @@ sources:
   - name: Platsbanken
     type: jobtech
     url: https://jobsearch.api.jobtechdev.se/search
-    queries: [examensarbete, exjobb, master thesis, thesis worker, examensarbete hälsa]
+    queries: [examensarbete, exjobb, master thesis, thesis worker, examensarbete hälsa,
+              examensarbete medicin, thesis AstraZeneca, thesis Elekta, thesis RaySearch,
+              thesis AFRY, thesis Doctrin, thesis Knightec, thesis Atea, examensarbete Karolinska]
 
   # A JS-rendered directory of links to company thesis pages, not ads.
   # Useful links from it: exjobb.meb.ki.se, exjobb.web.med.lu.se, who-umc.org.
@@ -81,19 +85,17 @@ sources:
   - name: SciLifeLab
     url: https://www.scilifelab.se/careers/
 
-  # Needs a new adapter: Workday loads jobs with JavaScript. JSON:
-  # POST https://elekta.wd3.myworkdayjobs.com/wday/cxs/elekta/Elekta_Careers/jobs
-  #   {"appliedFacets":{},"limit":20,"offset":0,"searchText":"thesis"}
+  # Workday loads jobs with JavaScript; the workday adapter reads the same JSON
+  # (POST /wday/cxs/elekta/Elekta_Careers/jobs with searchText "thesis").
   - name: Elekta
+    type: workday
     url: https://elekta.wd3.myworkdayjobs.com/en-US/Elekta_Careers
-    enabled: false
-  # Needs a new adapter: the SmartRecruiters board links to another host
-  # (jobs.smartrecruiters.com), which generic_html doesn't follow. JSON:
-  # GET https://afry.com/en/api/afp-hr-smartrecruiteres-job-list, keep
-  # CompetenceAreas[].Name == "Student Assignment and Thesis Work".
+  # afry.com loads all ~620 jobs from this JSON; the afry adapter keeps the
+  # "Student Assignment and Thesis Work" category. (SmartRecruiters' own API is
+  # closed to crawlers by its robots.txt.)
   - name: AFRY
-    url: https://careers.smartrecruiters.com/afry?search=thesis
-    enabled: false
+    type: afry
+    url: https://afry.com/en/api/afp-hr-smartrecruiteres-job-list
 
   # No careers page found on 2026-10-31.
   - name: Acorai
@@ -117,5 +119,16 @@ sources:
   - name: AstraZeneca Sweden
     company: AstraZeneca
     url: https://careers.astrazeneca.com/search-jobs/thesis%20examensarbete/Sweden/7684/1/2/2661886/62/15/100/2
+    link_pattern: /job/
+    max_depth: 1
+  # "thesis" and "examensarbete" return different ads, so search each word too.
+  - name: AstraZeneca Sweden (thesis)
+    company: AstraZeneca
+    url: https://careers.astrazeneca.com/search-jobs/thesis/Sweden/7684/1/2/2661886/62/15/100/2
+    link_pattern: /job/
+    max_depth: 1
+  - name: AstraZeneca Sweden (examensarbete)
+    company: AstraZeneca
+    url: https://careers.astrazeneca.com/search-jobs/examensarbete/Sweden/7684/1/2/2661886/62/15/100/2
     link_pattern: /job/
     max_depth: 1

@@ -11,6 +11,14 @@ on:
         description: "Use embedding similarity (slower, downloads a model)"
         type: boolean
         default: true
+      only:
+        description: "Only these sources (comma-separated names from config/sources.yaml); history is not saved"
+        type: string
+        default: ""
+      deploy:
+        description: "Publish the report to GitHub Pages"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -64,12 +72,21 @@ jobs:
           restore-keys: listings-db-
 
       - name: Crawl
+        env:
+          ONLY: ${{ inputs.only }}
         run: |
-          thesis-crawler run --no-cache --top 20 \
-            $([ "$EMBEDDINGS" = "true" ] || echo --no-embeddings)
+          args=(--no-cache --top 20)
+          [ "$EMBEDDINGS" = "true" ] || args+=(--no-embeddings)
+          # Test runs on a subset of sources must not overwrite the shared history.
+          if [ -n "$ONLY" ]; then
+            IFS=',' read -ra only <<< "$ONLY"
+            only=("${only[@]## }"); only=("${only[@]%% }")
+            args+=(--only "${only[@]}" --db /tmp/test.db)
+          fi
+          thesis-crawler run "${args[@]}"
 
       - name: Save listing history
-        if: always() && hashFiles('data/listings.db') != ''
+        if: always() && inputs.only == '' && hashFiles('data/listings.db') != ''
         uses: actions/cache/save@v4
         with:
           path: data
@@ -87,6 +104,7 @@ jobs:
 
   deploy:
     needs: crawl
+    if: github.event_name == 'schedule' || inputs.deploy
     runs-on: ubuntu-latest
     environment:
       name: github-pages

@@ -37,6 +37,8 @@
   a:hover { text-decoration: underline; }
   .badge { display: inline-block; font-size: .7rem; font-weight: 700; color: var(--new);
            border: 1px solid var(--new); border-radius: 4px; padding: 0 4px; margin-left: 6px; }
+  .chip { display: inline-block; font-size: .72rem; color: var(--accent); background: var(--bar);
+          border-radius: 4px; padding: 0 5px; margin-left: 6px; white-space: nowrap; }
   .terms { color: var(--muted); font-size: .85rem; }
   details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
   details p { white-space: pre-line; font-size: .85rem; max-height: 300px; overflow: auto; }
@@ -67,11 +69,12 @@
     {% for l in listings %}
       <tr data-new="{{ 1 if l.is_new else 0 }}" data-score="{{ l.score }}">
         <td class="score">{{ "%.0f"|format(l.score) }}
-          <div class="bar"><span style="width: {{ l.score }}%"></span></div>
+          <div class="bar"><span style="width: {{ [l.score, 100]|min }}%"></span></div>
           <div class="sub">kw {{ "%.0f"|format(l.keyword_score) }}{% if l.embedding_score is not none %} · emb {{ "%.0f"|format(l.embedding_score) }}{% endif %}</div>
         </td>
         <td><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.title }}</a>
           {% if l.is_new %}<span class="badge">NEW</span>{% endif %}
+          {% for b in l.bonuses %}<span class="chip">+ {{ b }}</span>{% endfor %}
           <div class="terms">{{ l.matched_terms[:8]|join(", ") }}</div>
           {% if l.description %}<details><summary>Description</summary><p>{{ l.description[:4000] }}</p></details>{% endif %}
         </td>

@@ -23,8 +23,30 @@ LINK_RE = re.compile(
 )
 
 
+# Titles of ordinary (mostly academic) jobs whose ads mention theses in passing,
+# e.g. a lecturer who will supervise "examensarbeten".
+NOT_THESIS_TITLE_RE = re.compile(
+    r"\b(?:doktorand\w*|ph\.?\s?d\b|postdoc\w*|post-doc\w*|\w*lektor\w*|\w*adjunkt\w*|"
+    r"professor\w*|\w*forskare|forskningsassistent\w*|research\s+(?:assistant|engineer|scientist)|"
+    r"\w*lärare|sjuksköterska\w*|teacher|lecturer)\b",
+    re.IGNORECASE,
+)
+
+# How far into a description a thesis mention still counts as being about the ad itself.
+LEAD_CHARS = 600
+
+
 def is_thesis(text: str) -> bool:
     return bool(THESIS_RE.search(text or ""))
+
+
+def is_thesis_listing(title: str, description: str = "") -> bool:
+    """A thesis ad says so in its title, or early in the text of a non-job title."""
+    if is_thesis(title):
+        return True
+    if NOT_THESIS_TITLE_RE.search(title or ""):
+        return False
+    return is_thesis((description or "")[:LEAD_CHARS])
 
 
 def looks_like_thesis_link(text: str) -> bool:

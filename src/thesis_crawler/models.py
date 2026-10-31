@@ -27,6 +27,7 @@ class Listing:
     keyword_score: float = 0.0
     embedding_score: float | None = None
     matched_terms: list[str] = field(default_factory=list)
+    bonuses: list[str] = field(default_factory=list)
     first_seen: str = ""
     is_new: bool = False
 
