@@ -108,8 +108,8 @@ It only contains the ranked listings, not your CV.
   `- {name: Foo, url: https://foo.se/careers}`. The `generic_html` crawler starts
   there, follows links that look thesis related (thesis, exjobb, students, degree
   project), and crawls hub pages such as "Thesis opportunities" one level deeper.
-  If the site runs on Teamtailor, use `type: teamtailor` instead; for SmartRecruiters
-  (e.g. AFRY), use `type: smartrecruiters` with `company_id`.
+  If the site runs on Teamtailor, use `type: teamtailor` instead; for Workday
+  career sites (`*.myworkdayjobs.com`, e.g. Elekta) use `type: workday`.
 
 > Check **Sources that failed** at the bottom of the report now and then: companies
 > move their careers pages. Point a failing entry at the new page or set
