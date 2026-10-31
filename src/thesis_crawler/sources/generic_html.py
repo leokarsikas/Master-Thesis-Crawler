@@ -22,6 +22,16 @@ log = logging.getLogger(__name__)
 HUB_MIN_LINKS = 3
 
 
+def strip_site_suffix(title: str, company: str) -> str:
+    """Drop a trailing " | Company" / " - Company" that sites add to page titles."""
+    word = company.split()[0].lower() if company else ""
+    for sep in (" | ", " – ", " - "):
+        head, found, tail = title.rpartition(sep)
+        if found and head and word and word in tail.lower():
+            return head.strip()
+    return title
+
+
 @register("generic_html")
 class GenericHtmlSource(Source):
     def __init__(
@@ -105,7 +115,7 @@ class GenericHtmlSource(Source):
         return out
 
     def _to_listing(self, soup, url: str) -> Listing | None:
-        title = page_title(soup)
+        title = strip_site_suffix(page_title(soup), self.company)
         text = main_text(soup)
         if not is_thesis_listing(title, text):
             return None

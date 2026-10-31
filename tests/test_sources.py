@@ -146,3 +146,18 @@ def test_post_json_sends_body_and_caches(tmp_path):
         f.post_json("https://x.myworkdayjobs.com/wday/cxs/x/S/jobs", body)  # served from cache
         f.post_json("https://x.myworkdayjobs.com/wday/cxs/x/S/jobs", {**body, "offset": 20})
     assert calls == [body, {**body, "offset": 20}]
+
+
+@pytest.mark.parametrize(
+    "title, company, expected",
+    [
+        ("MSc Thesis: Vision Foundation Models | RaySearch Laboratories", "RaySearch Laboratories",
+         "MSc Thesis: Vision Foundation Models"),
+        ("Master Thesis - Data Analysis - Volvo Group", "Volvo", "Master Thesis - Data Analysis"),
+        ("Master Thesis - Data Analysis", "Elekta", "Master Thesis - Data Analysis"),
+    ],
+)
+def test_strip_site_suffix(title, company, expected):
+    from thesis_crawler.sources.generic_html import strip_site_suffix
+
+    assert strip_site_suffix(title, company) == expected
