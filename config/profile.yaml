@@ -123,3 +123,29 @@ bonuses:
     terms: [compensat*, remunerat*, stipend*, paid thesis, "/\\bpaid\\b/", salary, "/\\bbonus\\b/",
             "/thesis\\s+(?:fee|grant|allowance)/", ersättning*, stipendi*, arvode*, "/\\blön\\b/",
             "/\\d[\\d\\s.,]*\\s?(?:kr|sek)\\b/"]
+
+# Things every thesis must have. A listing that misses one loses `penalty`
+# points, gets a "no <label> link" tag, and is hidden in the report by default.
+requirements:
+  health:
+    # The Data-driven Health programme requires a link to health.
+    label: health
+    penalty: 50
+    # Met by a term in the title, by `min_text_hits` different terms in the
+    # text, or by an employer whose whole business is health.
+    min_text_hits: 2
+    terms: [health*, hälsa, hälso*, healthcare, "/\\bvård\\w*/", sjukvård*, clinical*, klinisk*,
+            medical, medicin*, medtech, biomedic*, patient*, hospital*, sjukhus*, diagnos*,
+            disease*, sjukdom*, therap*, terapi*, radiotherap*, strålbehandling,
+            "radiation therapy", oncolog*, cancer, "/\\btumou?r\\w*/", pharma*,
+            läkemedel*, "drug development", "drug delivery", "clinical trial*", EHR,
+            "electronic health record*", patientjournal*, rehabilitat*, diabetes, cardiac,
+            cardio*, hjärt*, MRI, "/\\bMR\\b/", "/\\bCT\\b/", CBCT, radiolog*, physiolog*,
+            "mental health", psykisk*, epidemiolog*, genomic*, genetic*, omvårdnad, nursing,
+            wellbeing, well-being, triage, "medical device*", "medical imaging", dose, dosimetr*,
+            "precision medicine", "life science*", ECG, EEG, gait, sepsis, infection*, infekt*,
+            "/\\bICU\\b/", "intensive care", intensivvård, mortality, symptom*, surg*, kirurg*,
+            stroke, dementia, demens, asthma, "blood flow", "blood pressure", äldreomsorg, "elderly care"]
+    employers: [raysearch*, elekta*, doctrin*, saluto*, devyser*, luma vision*, acorai*,
+                sensodetect*, onetwo*, "one two analytics", digital diabetes*, platform24*,
+                karolinska*, "/\\bregion\\b.*hälso/"]

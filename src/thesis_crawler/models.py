@@ -28,6 +28,7 @@ class Listing:
     embedding_score: float | None = None
     matched_terms: list[str] = field(default_factory=list)
     bonuses: list[str] = field(default_factory=list)
+    missing: list[str] = field(default_factory=list)  # requirements the listing doesn't meet
     first_seen: str = ""
     is_new: bool = False
 

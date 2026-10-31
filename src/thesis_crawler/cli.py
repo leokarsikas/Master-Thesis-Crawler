@@ -56,7 +56,9 @@ def run(args: argparse.Namespace) -> int:
         listings, errors = crawl(sources, fetcher)
 
     embedder = None if args.no_embeddings else Embedder(profile.embedding_model)
-    ranked = [l for l in score_listings(listings, profile, embedder) if l.score >= args.min_score]
+    ranked = score_listings(listings, profile, embedder)
+    if args.min_score is not None:
+        ranked = [l for l in ranked if l.score >= args.min_score]
 
     store = Store(args.db)
     try:
@@ -86,7 +88,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-cache", action="store_true", help="always refetch pages")
     p.add_argument("--only", nargs="+", metavar="NAME", help="run only these sources")
     p.add_argument("--no-embeddings", action="store_true", help="keyword scoring only")
-    p.add_argument("--min-score", type=float, default=0.0)
+    p.add_argument("--min-score", type=float, default=None, help="drop listings scoring below this")
     p.add_argument("--top", type=int, default=15, help="print this many top matches")
     p.add_argument("--delay", type=float, default=1.0, help="seconds between requests per host")
     p.add_argument("--ignore-robots", action="store_true")

@@ -52,6 +52,26 @@ class Bonus:
         return True
 
 
+@dataclass
+class Requirement:
+    """Something every thesis must have (e.g. a link to health). Listings that
+    miss it lose `penalty` points and are flagged in the report."""
+
+    label: str
+    penalty: float
+    terms: list[re.Pattern]
+    employers: list[re.Pattern]
+    min_text_hits: int  # distinct terms needed in the text when none is in the title
+
+    def met_by(self, listing: Listing) -> bool:
+        if any(p.search(listing.company or "") for p in self.employers):
+            return True
+        if any(p.search(listing.title) for p in self.terms):
+            return True
+        hits = sum(1 for p in self.terms if p.search(listing.description))
+        return hits >= self.min_text_hits
+
+
 class Profile:
     def __init__(self, data: dict):
         self.text: str = data.get("profile_text", "").strip()
@@ -69,6 +89,16 @@ class Profile:
                 not_employers=[_compile(t) for t in cfg.get("not_employers", [])],
             )
             for name, cfg in (data.get("bonuses") or {}).items()
+        ]
+        self.requirements: list[Requirement] = [
+            Requirement(
+                label=cfg.get("label", name.replace("_", " ")),
+                penalty=float(cfg.get("penalty", 0)),
+                terms=[_compile(t) for t in cfg.get("terms", [])],
+                employers=[_compile(t) for t in cfg.get("employers", [])],
+                min_text_hits=int(cfg.get("min_text_hits", 2)),
+            )
+            for name, cfg in (data.get("requirements") or {}).items()
         ]
         scoring = data.get("scoring") or {}
         self.keyword_saturation = float(scoring.get("keyword_saturation", 25))
@@ -156,6 +186,9 @@ def score_listings(
         earned = [b for b in profile.bonuses if b.applies(listing)]
         listing.bonuses = [b.label for b in earned]
         listing.score += sum(b.points for b in earned)
+        missed = [r for r in profile.requirements if not r.met_by(listing)]
+        listing.missing = [r.label for r in missed]
+        listing.score -= sum(r.penalty for r in missed)
         listing.score = round(listing.score, 1)
 
     return sorted(listings, key=lambda l: l.score, reverse=True)
