@@ -50,7 +50,7 @@ class FakeEmbedder:
 
 
 def test_embeddings_blend_with_keywords(profile):
-    a, b = make("Master thesis A"), make("Master thesis B")
+    a, b = make("Master thesis A", "clinical patient data"), make("Master thesis B", "clinical patient data")
     ranked = score_listings([a, b], profile, FakeEmbedder([0.15, 0.6]))
     assert ranked[0] is b
     assert b.embedding_score == 100 and a.embedding_score == 0
@@ -62,7 +62,7 @@ def test_embeddings_unavailable_falls_back_to_keywords(profile):
         def similarities(self, query, texts):
             return None
 
-    [l] = score_listings([make("Master thesis", "machine learning for health")], profile, Broken())
+    [l] = score_listings([make("Master thesis", "machine learning for patient health")], profile, Broken())
     assert l.embedding_score is None and l.score == round(l.keyword_score + 8, 1)  # + company bonus
 
 
@@ -118,3 +118,28 @@ def test_bonuses_raise_ranking(profile):
     ranked = score_listings([plain, perks], profile, embedder=None)
     assert ranked[0] is perks
     assert perks.score - plain.score == 8 + 7 + 12 + 8
+
+
+def test_health_requirement(profile):
+    def missing(title, description="", company="X AB"):
+        l = make(title, description)
+        l.company = company
+        [scored] = score_listings([l], profile, embedder=None)
+        return scored.missing
+
+    assert missing("Master thesis: AI for radiotherapy planning") == []
+    assert missing("Master thesis: LLM agents", "Agents for clinical workflows used by patients.") == []
+    assert missing("Master Thesis Usability Evaluation", company="Elekta") == []  # health company
+    assert missing("Master thesis: Long context document retrieval", "Public sector documents.") == ["health"]
+    # One passing mention isn't enough: AFRY's ad names life science among many industries.
+    assert missing("Master thesis - Structural Analysis",
+                   "Clients in automotive, defence, or life science.") == ["health"]
+
+
+def test_missing_health_costs_points(profile):
+    health = make("Master thesis: machine learning for clinical decision support")
+    other = make("Master thesis: machine learning for decision support")
+    other.url = "https://x.se/other"
+    score_listings([health, other], profile, embedder=None)
+    assert other.missing == ["health"]
+    assert health.score - other.score >= 50

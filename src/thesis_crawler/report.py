@@ -12,7 +12,7 @@ from .models import Listing
 
 CSV_FIELDS = [
     "score", "new", "title", "company", "location", "deadline", "source",
-    "keyword_score", "embedding_score", "bonuses", "matched_terms", "first_seen", "url",
+    "keyword_score", "embedding_score", "missing", "bonuses", "matched_terms", "first_seen", "url",
 ]
 
 
@@ -31,6 +31,7 @@ def write_csv(listings: list[Listing], path: Path) -> None:
                 "source": l.source,
                 "keyword_score": round(l.keyword_score, 1),
                 "embedding_score": "" if l.embedding_score is None else round(l.embedding_score, 1),
+                "missing": "; ".join(l.missing),
                 "bonuses": "; ".join(l.bonuses),
                 "matched_terms": "; ".join(l.matched_terms),
                 "first_seen": l.first_seen[:10],
@@ -48,6 +49,7 @@ def write_html(listings: list[Listing], path: Path, errors: dict[str, str]) -> N
         errors=errors,
         generated=datetime.now().strftime("%Y-%m-%d %H:%M"),
         new_count=sum(l.is_new for l in listings),
+        missing_count=sum(bool(l.missing) for l in listings),
         embeddings=any(l.embedding_score is not None for l in listings),
     )
     path.write_text(html, encoding="utf-8")

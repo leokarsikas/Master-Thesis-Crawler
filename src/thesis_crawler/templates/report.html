@@ -39,6 +39,7 @@
            border: 1px solid var(--new); border-radius: 4px; padding: 0 4px; margin-left: 6px; }
   .chip { display: inline-block; font-size: .72rem; color: var(--accent); background: var(--bar);
           border-radius: 4px; padding: 0 5px; margin-left: 6px; white-space: nowrap; }
+  .chip.warn { color: var(--warn); background: transparent; border: 1px solid var(--warn); }
   .terms { color: var(--muted); font-size: .85rem; }
   details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
   details p { white-space: pre-line; font-size: .85rem; max-height: 300px; overflow: auto; }
@@ -57,6 +58,7 @@
   <div class="controls">
     <input type="search" id="q" placeholder="Filter by title, company, term…">
     <label><input type="checkbox" id="onlyNew"> Only new</label>
+    {% if missing_count %}<label><input type="checkbox" id="onlyOk" checked> Hide {{ missing_count }} that miss a requirement</label>{% endif %}
   </div>
 
   <div class="table-wrap">
@@ -67,14 +69,15 @@
     </tr></thead>
     <tbody>
     {% for l in listings %}
-      <tr data-new="{{ 1 if l.is_new else 0 }}" data-score="{{ l.score }}">
+      <tr data-new="{{ 1 if l.is_new else 0 }}" data-ok="{{ 0 if l.missing else 1 }}" data-score="{{ l.score }}">
         <td class="score">{{ "%.0f"|format(l.score) }}
-          <div class="bar"><span style="width: {{ [l.score, 100]|min }}%"></span></div>
+          <div class="bar"><span style="width: {{ [[l.score, 0]|max, 100]|min }}%"></span></div>
           <div class="sub">kw {{ "%.0f"|format(l.keyword_score) }}{% if l.embedding_score is not none %} · emb {{ "%.0f"|format(l.embedding_score) }}{% endif %}</div>
         </td>
         <td><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.title }}</a>
           {% if l.is_new %}<span class="badge">NEW</span>{% endif %}
           {% for b in l.bonuses %}<span class="chip">+ {{ b }}</span>{% endfor %}
+          {% for m in l.missing %}<span class="chip warn">no {{ m }} link</span>{% endfor %}
           <div class="terms">{{ l.matched_terms[:8]|join(", ") }}</div>
           {% if l.description %}<details><summary>Description</summary><p>{{ l.description[:4000] }}</p></details>{% endif %}
         </td>
@@ -97,16 +100,20 @@
 </main>
 <script>
   const q = document.getElementById("q"), onlyNew = document.getElementById("onlyNew");
+  const onlyOk = document.getElementById("onlyOk");
   const body = document.querySelector("#t tbody");
   function filter() {
     const s = q.value.toLowerCase();
     for (const tr of body.rows) {
-      const ok = tr.textContent.toLowerCase().includes(s) && (!onlyNew.checked || tr.dataset.new === "1");
+      const ok = tr.textContent.toLowerCase().includes(s) && (!onlyNew.checked || tr.dataset.new === "1")
+        && (!onlyOk || !onlyOk.checked || tr.dataset.ok === "1");
       tr.style.display = ok ? "" : "none";
     }
   }
   q.addEventListener("input", filter);
   onlyNew.addEventListener("change", filter);
+  if (onlyOk) onlyOk.addEventListener("change", filter);
+  filter();
   document.querySelectorAll("#t th").forEach((th, i) => {
     let asc = false;
     th.addEventListener("click", () => {

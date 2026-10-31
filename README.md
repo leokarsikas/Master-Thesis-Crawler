@@ -104,6 +104,12 @@ It only contains the ranked listings, not your CV.
   | job after thesis | +12 | the ad mentions possible employment after the thesis (EN/SV) |
   | paid | +8 | the ad mentions compensation, a stipend, salary or an amount in kr/SEK |
 
+- **`requirements`** in `config/profile.yaml` are must-haves. The **health**
+  requirement (the Data-driven Health programme requires a link to health) is met
+  by a health term in the title, two different health terms in the text, or a
+  health company as employer. A listing that misses it loses 50 points, is tagged
+  "no health link", and is hidden in the report until you untick the filter.
+
 - **`config/sources.yaml`** lists where to look. To add a company, add
   `- {name: Foo, url: https://foo.se/careers}`. The `generic_html` crawler starts
   there, follows links that look thesis related (thesis, exjobb, students, degree
