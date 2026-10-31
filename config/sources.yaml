@@ -6,7 +6,7 @@
 #   kth_portal    KTH Degree Project Portal table (can start on an info page that links to it)
 #   jobtech       Platsbanken via the JobTech JobSearch API
 #
-# Company URLs are best guesses and have not been checked from a live connection.
+# Company URLs were checked in a browser on 2026-10-31 (see thesis-research-report.md).
 # Sources that fail are listed at the bottom of out/report.html; fix the URL
 # (point it at the company's careers / students / thesis page) or set enabled: false.
 # Optional per-source keys: company, link_pattern, max_depth, max_pages, enabled.
@@ -18,60 +18,104 @@ sources:
     url: https://jobsearch.api.jobtechdev.se/search
     queries: [examensarbete, exjobb, master thesis, thesis worker, examensarbete hälsa]
 
+  # A JS-rendered directory of links to company thesis pages, not ads.
+  # Useful links from it: exjobb.meb.ki.se, exjobb.web.med.lu.se, who-umc.org.
   - name: dittexjobb.se
     type: generic_html
     url: https://www.dittexjobb.se/hitta-examensarbete-exjobb
     max_depth: 2
     max_pages: 80
+    enabled: false
 
   # --- KTH -------------------------------------------------------------------
+  # The portal (kth-exjobb.powerappsportals.com) loads its table with JavaScript,
+  # so this adapter probably needs a headless browser to see any rows.
   - name: KTH Degree Project Portal
     type: kth_portal
     company: KTH
     url: https://www.kth.se/en/samverkan/exjobb/studenter
 
+  # No thesis or student section on the lab site; its projects show up in the portal.
   - name: KTH MoveAbility Lab
     type: generic_html
     company: KTH MoveAbility Lab
-    url: https://www.kth.se/moveability
+    url: https://www.kth.se/moveabilitylab
 
   # --- Companies from the Data-driven Health kick-off slides ------------------
-  - name: Acorai
-    url: https://www.acorai.com/careers
-  - name: AFRY (ÅF Digital Solutions)
-    company: AFRY
-    url: https://afry.com/en/join-us/students
-  - name: AI Sweden
-    url: https://www.ai.se/en/about-us/join-us
+  # The Atea page is behind a bot check, which may block plain HTTP clients.
   - name: Atea Sverige
-    url: https://www.atea.se/om-oss/karriar/student/
-  - name: Coala Solutions
-    url: https://www.coalasolutions.se/
+    url: https://www.atea.se/karriar/lediga-jobb/
+  - name: AI Sweden
+    type: teamtailor
+    url: https://careers.ai.se/jobs?query=thesis
   - name: Devyser Diagnostics
-    url: https://devyser.com/careers/
-  - name: Digital Diabetes Analytics Sweden
-    url: https://www.digitaldiabetesanalytics.com/
+    url: https://devyser.weselect.com/
   - name: Doctrin
-    url: https://www.doctrin.se/careers
-  - name: Elekta
-    url: https://www.elekta.com/careers/students/
+    type: teamtailor
+    url: https://career.doctrin.se/jobs
   - name: EverySport Group
     url: https://www.everysportgroup.com/
   - name: Karolinska Institutet
-    url: https://ki.se/en/about/vacancies
-  - name: Knightec
-    url: https://knightec.se/en/career/thesis-work/
+    url: https://ki.varbi.com/en/
+  # Knightec is now Knightec Group (156 jobs); search both words to stay under max_pages.
+  - name: Knightec Group (thesis)
+    type: teamtailor
+    company: Knightec Group
+    url: https://career.knightecgroup.com/jobs?query=thesis
+  - name: Knightec Group (examensarbete)
+    type: teamtailor
+    company: Knightec Group
+    url: https://career.knightecgroup.com/jobs?query=examensarbete
   - name: LUMA Vision
-    url: https://www.lumavision.com/careers
+    url: https://luma-vision.hirehive.com/
   - name: Modulai
-    url: https://modulai.io/careers
-  - name: OneTwo Analytics
-    url: https://www.onetwoanalytics.com/
+    type: teamtailor
+    url: https://modulai.teamtailor.com/jobs
+  # Workbuster moved to OneCruiter; raysearchlabs.com/career/ only shows it in a cookie-gated iframe.
   - name: RaySearch Laboratories
-    url: https://www.raysearchlabs.com/careers/
+    url: https://raysearchlabs.onecruiter.com/?_=1&language=en
+    link_pattern: /jobs/\d+
+    max_depth: 1
+    max_pages: 60
+  # Lists only PhD, postdoc and staff positions so far (JSON: /wp-json/wp/v2/career).
   - name: SciLifeLab
     url: https://www.scilifelab.se/careers/
+
+  # Needs a new adapter: Workday loads jobs with JavaScript. JSON:
+  # POST https://elekta.wd3.myworkdayjobs.com/wday/cxs/elekta/Elekta_Careers/jobs
+  #   {"appliedFacets":{},"limit":20,"offset":0,"searchText":"thesis"}
+  - name: Elekta
+    url: https://elekta.wd3.myworkdayjobs.com/en-US/Elekta_Careers
+    enabled: false
+  # Needs a new adapter: the SmartRecruiters board links to another host
+  # (jobs.smartrecruiters.com), which generic_html doesn't follow. JSON:
+  # GET https://afry.com/en/api/afp-hr-smartrecruiteres-job-list, keep
+  # CompetenceAreas[].Name == "Student Assignment and Thesis Work".
+  - name: AFRY
+    url: https://careers.smartrecruiters.com/afry?search=thesis
+    enabled: false
+
+  # No careers page found on 2026-10-31.
+  - name: Acorai
+    url: https://www.acorai.com/
+    enabled: false
+  - name: Coala Solutions
+    url: https://coalasolutions.com/en/
+    enabled: false
+  # Digital Diabetes Analytics Sweden is now OneTwo Analytics.
+  - name: OneTwo Analytics
+    url: https://onetwo-analytics.com/
+    enabled: false
   - name: SensoDetect
     url: https://www.sensodetect.com/
+    enabled: false
   - name: Saluto
-    url: https://www.saluto.se/
+    url: https://saluto.ai/
+    enabled: false
+
+  # --- Other companies -------------------------------------------------------
+  - name: AstraZeneca Sweden
+    company: AstraZeneca
+    url: https://careers.astrazeneca.com/search-jobs/thesis%20examensarbete/Sweden/7684/1/2/2661886/62/15/100/2
+    link_pattern: /job/
+    max_depth: 1
